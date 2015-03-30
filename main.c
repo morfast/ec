@@ -58,9 +58,6 @@ void add_set(struct tuple *D[], uint32_t size, struct tuple *e)
     append_list(D[get_key(e, size)], e);
 }
 
-int delete_f0_tuples(struct tuple *D)
-{}
-
 int init(double eps)
 { 
     uint32_t size, i;
@@ -95,6 +92,47 @@ int exsitf0(struct tuple **D, uint32_t size)
     return 0;
 }
 
+void decreasef(struct tuple **D, uint32_t size)
+{
+    uint32_t i;
+    struct tuple *t;
+
+    for (i = 0; i < size; i++) {
+		t = D[i];
+		while (t != NULL) {
+		    t->f--;
+		    t->df++;
+		}
+    }
+}
+
+int delete_f0_tuples(struct tuple **D, uint32_t size)
+{ 
+    uint32_t i;
+    struct tuple *t;
+    struct tuple *tmp;
+
+    for (i = 0; i < size; i++) {
+		//head node
+		while (D[i] != NULL && D[i]->f == 0) {
+			tmp = D[i];
+			D[i] = D[i]->next;
+			free(tmp);
+		}
+			
+		t = D[i];
+	    while (t->next != NULL) {
+			if (t->next->f == 0) {
+				tmp = t;
+				t = t->next;
+				free(tmp);
+			}
+	    }
+    }
+		
+}
+
+
 
 int ecount(struct tuple **D, uint32_t size, struct tuple *e)
 {
@@ -109,12 +147,29 @@ int ecount(struct tuple **D, uint32_t size, struct tuple *e)
             e->ne = N;
             add_set(D, size, e);
         } else {
-
+			while (exsitf0(D, size)) {
+				decreasef(D, size);
+			}
+			delete_f0_tuples(D, size);
+            add_set(D, size, e);
         }
     }
-            
+}
 
+int query(struct tuple **D, uint32_t size, double s, double eps)
+{
+	int i;
+	struct tuple *t;
 
+	for (i = 0; i < size; i++) {
+		t = D[i];
+		while (t != NULL) {
+			if ((t->f + t->df) > (s - eps)*N) {
+				/* output t */
+				printf("%u, %u\n", t->elem, t->f);
+			}
+		}
+	}
 }
 
     
