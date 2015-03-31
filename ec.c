@@ -155,7 +155,6 @@ void ecount(struct tuple **D, uint32_t size, struct tuple *e)
     N++;
 
     if (check_and_add(D, size, e)) {
-        Dcount++;
         return;
     } else {
         /* D is not full */
@@ -252,7 +251,7 @@ void print_D(struct tuple **D)
 
 int main()
 {
-    int i;
+    int i,j;
     uint32_t ip_addr;
     uint32_t *result_ips, n_resip;
     uint32_t store_size;
@@ -264,19 +263,24 @@ int main()
 
     FILE * p = fopen("data","w");
 
-    for (i = 0; i < 100; i++) {
-        ip_addr = (uint32_t)rand() % 100;
-        fprintf(p, "%d\n", ip_addr);
-        add_site(ip_addr);
-    }
-    for (i = 0; i < 500; i++) {
-        ip_addr = (uint32_t)rand() % 20 + 1000;
-        fprintf(p, "%d\n", ip_addr);
-        add_site(ip_addr);
-    }
+	j = 0;
+	while (j++ < 10) {
+    	for (i = 0; i < 2000; i++) {
+    	    ip_addr = (uint32_t)rand() % 1000;
+    	    fprintf(p, "%d\n", ip_addr);
+    	    add_site(ip_addr);
+    	}
+    	for (i = 0; i < 9000; i++) {
+    	    ip_addr = (uint32_t)rand() % 30 + 1000;
+    	    fprintf(p, "%d\n", ip_addr);
+    	    add_site(ip_addr);
+    	}
+	}
+
+	print_D(D);
 
     result_ips = (uint32_t *)malloc(sizeof(uint32_t) * store_size);
-    s = 0.04;
+    s = 0.028;
     query_es(s, result_ips, &n_resip);
 
     for(i = 0; i < n_resip; i++) {
