@@ -10,9 +10,9 @@
 struct tuple
 {
     uint32_t elem;
-    int64_t f;
+    uint64_t f;
     uint64_t ne;
-    int64_t df;
+    uint64_t df;
     struct tuple *next;
 };
 
@@ -161,8 +161,8 @@ int delete_f0_tuples(struct tuple **D, uint32_t size)
 		t = D[i];
 	    while ((t != NULL) && (t->next != NULL)) {
 			if (t->next->f == 0) {
-				tmp = t;
-				t = t->next;
+				tmp = t->next;
+				t->next = t->next->next;
 				free(tmp);
                 Dcount--;
 			}
@@ -280,11 +280,13 @@ int main()
     init_es(eps);
     srand((unsigned)time(NULL));  
 
-    for (i = 0; i < 1000; i++) {
+    for (i = 0; i < 100; i++) {
         add_site((uint32_t)rand() % 100);
     }
-    for (i = 0; i < 1000; i++) {
-        add_site((uint32_t)rand() % 10000);
+    for (i = 0; i < 700; i++) {
+        //printf("========================\n");
+        //print_D(D);
+        add_site(1000 + ((uint32_t)rand() % 10));
     }
     //for (i = 0; i < 80; i++) {
     //    add_site((uint32_t)(i % 100));
@@ -298,7 +300,7 @@ int main()
 
     print_D(D);
 
-    s = 0.01;
+    s = 0.05;
     query_es(s);
 
     return 0;
