@@ -4,19 +4,21 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <time.h>
 
 
 struct tuple
 {
     uint32_t elem;
-    int f;
-    int ne;
-    int df;
+    int64_t f;
+    uint64_t ne;
+    int64_t df;
     struct tuple *next;
 };
 
-static uint32_t N;
+static uint64_t N;
 static uint32_t Dsize;
+static uint32_t Dcount;
 static struct tuple **D;
 static double es_s, es_eps;
 
@@ -24,6 +26,7 @@ static double es_s, es_eps;
    yes : return 1; 
    no: return 0 
 */
+void print_D(struct tuple **D);
 
 uint32_t get_key(struct tuple *e, uint32_t size)
 {
@@ -88,7 +91,7 @@ uint32_t init(double eps)
 { 
     uint32_t size, i;
 
-    size = (uint32_t)1/eps;
+    size = (uint32_t)1.0/eps;
     D = (struct tuple **)malloc(sizeof(struct tuple *) * size);
     if (D == NULL) return 0;
 
@@ -97,12 +100,13 @@ uint32_t init(double eps)
     }
 
     Dsize = size;
+    Dcount = 0;
 
     return size;
     
 }
 
-int exsitf0(struct tuple **D, uint32_t size)
+int notexsitf0(struct tuple **D, uint32_t size)
 {
     uint32_t i;
     struct tuple *t;
@@ -111,13 +115,13 @@ int exsitf0(struct tuple **D, uint32_t size)
         t = D[i];
         while (t != NULL) {
             if (t->f == 0) {
-                return 1;
+                return 0;
             }
             t = t->next;
         }
     }
 
-    return 0;
+    return 1;
 }
 
 void decreasef(struct tuple **D, uint32_t size)
@@ -128,8 +132,13 @@ void decreasef(struct tuple **D, uint32_t size)
     for (i = 0; i < size; i++) {
 		t = D[i];
 		while (t != NULL) {
+            if (t->f < 0) {
+                printf("aaaaa\n");
+                exit(1);
+            }
 		    t->f--;
 		    t->df++;
+            t = t->next;
 		}
     }
 }
@@ -142,18 +151,20 @@ int delete_f0_tuples(struct tuple **D, uint32_t size)
 
     for (i = 0; i < size; i++) {
 		//head node
-		while (D[i] != NULL && D[i]->f == 0) {
+		while ((D[i] != NULL) && (D[i]->f == 0)) {
 			tmp = D[i];
 			D[i] = D[i]->next;
 			free(tmp);
+            Dcount--;
 		}
 			
 		t = D[i];
-	    while (t && t->next != NULL) {
+	    while ((t != NULL) && (t->next != NULL)) {
 			if (t->next->f == 0) {
 				tmp = t;
 				t = t->next;
 				free(tmp);
+                Dcount--;
 			}
             t = t->next;
 	    }
@@ -167,19 +178,22 @@ void ecount(struct tuple **D, uint32_t size, struct tuple *e)
     N++;
 
     if (check_and_add(D, size, e)) {
+        Dcount++;
         return;
     } else {
         /* D is not full */
-        if (N <= size) {
+        if (Dcount <= size) {
             /* add e to D */
             e->ne = N;
             add_set(D, size, e);
+            Dcount++;
         } else {
-			while (exsitf0(D, size)) {
+			while (notexsitf0(D, size)) {
 				decreasef(D, size);
 			}
 			delete_f0_tuples(D, size);
             add_set(D, size, e);
+            Dcount++;
         }
     }
 }
@@ -201,9 +215,8 @@ int query(struct tuple **D, uint32_t size, double s, double eps)
 	}
 }
 
-void init_es(double s, double e)
+void init_es(double e)
 {
-    es_s = s;
     es_eps = e;
     Dsize = init(es_eps);
 }
@@ -230,10 +243,10 @@ int add_site(uint32_t ipaddr)
     return 0;
 }
 
-void query_es(double s, double eps)
+void query_es(double s)
 {
-    printf("query with s=%lf, eps=%lf\n", s, eps);
-    query(D, Dsize, s, eps);
+    printf("query with s=%lf, eps=%lf\n", s, es_eps);
+    query(D, Dsize, s, es_eps);
 }
 
 void print_D(struct tuple **D)
@@ -262,21 +275,31 @@ int main()
     int i;
 
     ip = 1;
-    init_es(0.1, 0.01);
+    double s, eps;
+    eps = 0.001;
+    init_es(eps);
+    srand((unsigned)time(NULL));  
 
-    for (i = 0; i < 80; i++) {
-        add_site((uint32_t)(i % 100));
+    for (i = 0; i < 1000; i++) {
+        add_site((uint32_t)rand() % 100);
     }
-    for (i = 0; i < 80; i++) {
-        add_site((uint32_t)(i*i % 100));
+    for (i = 0; i < 1000; i++) {
+        add_site((uint32_t)rand() % 10000);
     }
-    for (i = 0; i < 80; i++) {
-        add_site((uint32_t)(i*3 % 100));
-    }
+    //for (i = 0; i < 80; i++) {
+    //    add_site((uint32_t)(i % 100));
+    //}
+    //for (i = 0; i < 80; i++) {
+    //    add_site((uint32_t)(i*i % 100));
+    //}
+    //for (i = 0; i < 80; i++) {
+    //    add_site((uint32_t)(i*3 % 100));
+    //}
 
     print_D(D);
 
-    query_es(0.03, 0.01);
+    s = 0.01;
+    query_es(s);
 
     return 0;
 }
