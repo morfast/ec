@@ -12,6 +12,6 @@ for line in lines:
 n = len(lines)
 for k in res.keys():
     ratio = res[k]/float(n)
-    if ratio >= 0.04:
-        print k
+    if ratio >= 0.028:
+        print k, res[k]/float(n)
     

@@ -22,6 +22,8 @@ static uint32_t Dsize;
 static uint32_t Dcount;
 static struct tuple **D;
 static double es_eps;
+static prime_list[] = 
+    {1009, 2003, 5003, 10007, 20011, 50021, 100003, -1};
 
 void print_D(struct tuple **D);
 
@@ -69,6 +71,16 @@ uint32_t init(double eps)
     uint32_t size, i;
 
     size = (uint32_t)1.0/eps;
+
+    i = 0;
+    while (prime_list[i] > 0) {
+        if (prime_list[i] > size) {
+            size = prime_list[i];
+            break;
+        }
+        i++;
+    }
+
     D = (struct tuple **)malloc(sizeof(struct tuple *) * size);
     if (D == NULL) return 0;
 
@@ -257,21 +269,21 @@ int main()
     uint32_t store_size;
 
     double s, eps;
-    eps = 0.001;
+    eps = 0.0001;
     store_size = init_es(eps);
     srand((unsigned)time(NULL));  
 
     FILE * p = fopen("data","w");
 
 	j = 0;
-	while (j++ < 10) {
-    	for (i = 0; i < 2000; i++) {
-    	    ip_addr = (uint32_t)rand() % 1000;
+	while (j++ < 400) {
+    	for (i = 0; i < 1000; i++) {
+    	    ip_addr = (uint32_t)rand() % 10000;
     	    fprintf(p, "%d\n", ip_addr);
     	    add_site(ip_addr);
     	}
     	for (i = 0; i < 9000; i++) {
-    	    ip_addr = (uint32_t)rand() % 30 + 1000;
+    	    ip_addr = (uint32_t)rand() % 30 + 10000;
     	    fprintf(p, "%d\n", ip_addr);
     	    add_site(ip_addr);
     	}
