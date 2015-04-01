@@ -121,10 +121,6 @@ void decreasef(struct tuple **D, uint32_t size)
     for (i = 0; i < size; i++) {
 		t = D[i];
 		while (t != NULL) {
-            if (t->f < 0) {
-                printf("aaaaa\n");
-                exit(1);
-            }
 		    t->f--;
 		    t->df++;
             t = t->next;
@@ -161,10 +157,56 @@ void delete_f0_tuples(struct tuple **D, uint32_t size)
 		
 }
 
+uint32_t find_min_f(struct tuple **D, uint32_t size)
+{
+    uint32_t i;
+    struct tuple *t;
+    uint32_t minf;
+
+    for (i = 0; i < size; i++) {
+        t = D[i];
+		if (t != NULL) {
+            minf = t->f;
+            break;
+        }
+    }
+
+    while(i < size) {
+        t = D[i];
+        while (t != NULL) {
+            if (t->f < minf) {
+                minf = t->f;
+            }
+            t = t->next;
+        }
+        i++;
+    }
+
+    return minf;
+}
+
+void decrease_fn(struct tuple **D, uint32_t size, uint32_t n)
+{
+    uint32_t i;
+    struct tuple *t;
+
+    for (i = 0; i < size; i++) {
+		t = D[i];
+		while (t != NULL) {
+		    t->f -= n;
+		    t->df += n;
+            t = t->next;
+		}
+    }
+}
+
+
+
 
 void ecount(struct tuple **D, uint32_t size, struct tuple *e)
 {
     N++;
+    uint32_t minf;
 
     if (check_and_add(D, size, e)) {
         return;
@@ -176,9 +218,13 @@ void ecount(struct tuple **D, uint32_t size, struct tuple *e)
             add_set(D, size, e);
             Dcount++;
         } else {
-			while (notexsitf0(D, size)) {
-				decreasef(D, size);
-			}
+			//while (notexsitf0(D, size)) {
+			//	decreasef(D, size);
+			//}
+            minf = find_min_f(D, size);
+            if (minf != 0) {
+                decrease_fn(D, size, minf);
+            }
 			delete_f0_tuples(D, size);
             add_set(D, size, e);
             Dcount++;
@@ -271,7 +317,7 @@ int main()
     double s, eps;
     eps = 0.0001;
     store_size = init_es(eps);
-    srand((unsigned)time(NULL));  
+    //srand((unsigned)time(NULL));  
 
     FILE * p = fopen("data","w");
 
